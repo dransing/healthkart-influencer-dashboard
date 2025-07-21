@@ -20,6 +20,7 @@ anomaly = pd.read_csv('anomaly_detected.csv')
 # --- Preprocess ---
 tracking['date'] = pd.to_datetime(tracking['date'])
 data = pd.merge(tracking, payouts, on='influencer_id')
+data.rename(columns={'orders_x': 'orders'}, inplace=True)
 data['ROAS'] = data['revenue'] / data['total_payout']
 data['brand'] = tracking['brand']
 
