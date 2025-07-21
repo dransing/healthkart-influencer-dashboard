@@ -185,8 +185,9 @@ st.subheader("🔮 Predictive ROAS Forecasting")
 
 try:
     model_df = pd.merge(tracking, payouts, on='influencer_id')
-    model_df = pd.merge(model_df, influencers[['id', 'platform', 'category', 'follower_count']], left_on='influencer_id', right_on='id')
-    
+    model_df = pd.merge(model_df, influencers[['id', 'platform', 'category', 'follower_count']], 
+                        left_on='influencer_id', right_on='id')
+
     # Compute ROAS
     model_df['ROAS'] = model_df['revenue'] / model_df['total_payout']
     model_df.dropna(subset=['ROAS'], inplace=True)
@@ -199,7 +200,8 @@ try:
     if all(col in model_df.columns for col in required_cols):
         model_df = pd.get_dummies(model_df, columns=['platform', 'category'], drop_first=True)
 
-        X = model_df[required_cols + [col for col in model_df.columns if col.startswith('platform_') or col.startswith('category_')]]
+        X = model_df[required_cols + 
+                     [col for col in model_df.columns if col.startswith('platform_') or col.startswith('category_')]]
         y = model_df['ROAS']
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -211,19 +213,21 @@ try:
         results_df = pd.DataFrame({'Actual ROAS': y_test, 'Predicted ROAS': predictions}).reset_index(drop=True)
         st.dataframe(results_df.head(10))
 
+        # ✅ Use bar plot instead of scatter
         fig_pred_bar = px.bar(results_df.head(10), 
-                      x=results_df.index, 
-                      y=['Actual ROAS', 'Predicted ROAS'],
-                      barmode='group',
-                      labels={'value': 'ROAS', 'index': 'Sample'},
-                      title="Actual vs Predicted ROAS (Top 10)")
-st.plotly_chart(fig_pred_bar)
+                              x=results_df.index, 
+                              y=['Actual ROAS', 'Predicted ROAS'],
+                              barmode='group',
+                              labels={'value': 'ROAS', 'index': 'Sample'},
+                              title="Actual vs Predicted ROAS (Top 10)")
+        st.plotly_chart(fig_pred_bar)
 
     else:
         st.warning("Missing required columns for forecasting: orders, revenue, or follower_count")
 
 except Exception as e:
     st.error(f"Error during ROAS forecasting: {e}")
+
 
 
 
