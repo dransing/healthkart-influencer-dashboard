@@ -127,12 +127,36 @@ else:
 
 # --- Profit Estimation ---
 st.subheader("💸 Profit Estimation")
-if all(col in profit.columns for col in ['influencer_id', 'net_profit', 'margin']):
-    st.dataframe(profit[['influencer_id', 'net_profit', 'margin']])
-    fig_profit = px.bar(profit, x='influencer_id', y='net_profit', title="Net Profit by Influencer")
+
+# Load and fix column names
+profit = pd.read_csv('profit_estimation.csv')
+profit.rename(columns={'Net_Profit': 'net_profit', 'Profit_Margin_%': 'margin'}, inplace=True)
+
+# Show column list for debugging
+st.write("Columns in your profit dataset:", profit.columns.tolist())
+
+required_cols = ['influencer_id', 'net_profit', 'margin']
+
+if all(col in profit.columns for col in required_cols):
+    st.dataframe(profit[required_cols])
+
+    # Ensure influencer_id is treated as a string for coloring
+    profit['influencer_id'] = profit['influencer_id'].astype(str)
+
+    # Plot net profit bar chart with safe color palette
+    fig_profit = px.bar(
+        profit,
+        x='influencer_id',
+        y='net_profit',
+        color='influencer_id',
+        title="Net Profit by Influencer",
+        color_discrete_sequence=px.colors.qualitative.Safe
+    )
     st.plotly_chart(fig_profit)
+
 else:
-    st.warning("One or more required columns (influencer_id, net_profit, margin) not found in profit_estimation.csv")
+    st.error("❌ One or more required columns (influencer_id, net_profit, margin) are missing in profit_estimation.csv.")
+
 
 # --- Anomaly Detection ---
 st.subheader("🚨 Anomaly Detection")
