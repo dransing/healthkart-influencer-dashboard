@@ -45,6 +45,8 @@ if category_filter != "All":
 filtered_data = data.copy()
 if brand_filter != "All":
     filtered_data = filtered_data[filtered_data['brand'] == brand_filter]
+    filtered_data['date'] = pd.to_datetime(filtered_data['date'], errors='coerce')
+
 
 # --- Dashboard Title ---
 st.title("📊 HealthKart Influencer Campaign Dashboard (Agentic AI Edition)")
