@@ -1,0 +1,6 @@
+source,campaign,influencer_id,user_id,product,date,orders,revenue,brand,period
+Instagram,MB May,1,U001,MuscleBlaze Whey,2024-05-10,2,3000,MuscleBlaze,Before Campaign
+YouTube,HK Glow,2,U002,HKVitals Glow,2024-05-11,5,5000,HKVitals,Before Campaign
+Instagram,Life May,3,U003,Gritzo Energy,2024-05-12,1,1500,Gritzo,Before Campaign
+Instagram,MB June,101,U010,Protein Bar,2025-06-01,30,1500,HK Whey,After Campaign
+YouTube,HK June,102,U011,Capsules,2025-06-02,20,1200,HK Vitamin,After Campaign
