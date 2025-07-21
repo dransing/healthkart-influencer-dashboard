@@ -24,8 +24,8 @@ This interactive dashboard helps visualize, optimize, and track influencer marke
 
 ### Smart Influencer Recommendations
 - Highlights:
-  - 📈 High performers (ROAS > 8) to invest more in
-  - 📉 Underperformers (ROAS < 4) to reconsider
+  - High performers (ROAS > 8) to invest more in
+  - Underperformers (ROAS < 4) to reconsider
 
 ### Sentiment Analysis
 - Histogram of caption sentiment (positive, neutral, negative)
@@ -109,7 +109,9 @@ git clone https://github.com/dransing/healthkart-influencer-dashboard
 ```
 
 2. Install requirements:
+```bash
 pip install streamlit pandas matplotlib plotly scikit-learn
+```
 
 3. Run the app:
 ```bash
