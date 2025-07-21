@@ -104,9 +104,13 @@ st.plotly_chart(fig_sent)
 
 # --- Profit Estimation ---
 st.subheader("💸 Profit Estimation")
-st.dataframe(profit[['influencer_id', 'net_profit', 'margin']])
-fig_profit = px.bar(profit, x='influencer_id', y='net_profit', title="Net Profit by Influencer")
-st.plotly_chart(fig_profit)
+if all(col in profit.columns for col in ['influencer_id', 'Net_Profit', 'Profit_Margin_%']):
+    st.dataframe(profit[['influencer_id', 'Net_Profit', 'Profit_Margin_%']])
+    fig_profit = px.bar(profit, x='influencer_id', y='Net_Profit', title="Net Profit by Influencer")
+    st.plotly_chart(fig_profit)
+else:
+    st.warning("One or more required columns (influencer_id, Net_Profit, Profit_Margin_%) not found in profit_estimation.csv")
+
 
 # --- Anomaly Detection ---
 st.subheader("🚨 Anomaly Detection: ROAS Spikes & Drops")
