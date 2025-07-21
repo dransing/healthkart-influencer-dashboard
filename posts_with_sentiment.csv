@@ -1,4 +1,8 @@
-influencer_id,platform,date,url,caption,reach,likes,comments,sentiment
-1,Instagram,2024-05-10,http://insta.com/1,Boost your strength,30000,2500,150,Neutral
-2,YouTube,2024-05-11,http://youtube.com/1,Skin glow tips,80000,4000,300,Neutral
-3,Instagram,2024-05-12,http://insta.com/2,Work-life balance,20000,1000,80,Neutral
+influencer_id,caption,sentiment
+101,"Feeling so energetic with this protein blend!",Positive
+102,"Didn’t really feel a difference after 2 weeks.",Negative
+103,"Love how this helped my workout!",Positive
+104,"Hmm, not sure if it worked yet.",Neutral
+105,"Great taste and results!",Positive
+106,"Expected better packaging, honestly.",Negative
+
