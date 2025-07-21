@@ -97,7 +97,7 @@ st.metric("Simulated ROAS", simulated_roas)
 st.subheader("📈 Incremental ROAS: Before vs After Campaign")
 
 # Select campaign start date
-campaign_start = st.date_input("📅 Select Campaign Start Date", value=pd.to_datetime("2025-06-01"))
+campaign_start = st.date_input("📅 Select Campaign Start Date", value=pd.to_datetime("2024-05-11"))
 campaign_start = pd.to_datetime(campaign_start)
 
 # Filter before and after campaign
