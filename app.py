@@ -18,10 +18,14 @@ profit = pd.read_csv('profit_estimation.csv')
 anomaly = pd.read_csv('anomaly_detected.csv')
 
 # --- Preprocess ---
-data = pd.merge(tracking, payouts, on='influencer_id')
+# Merge tracking and payouts fully, keeping all tracking data
+data = pd.merge(tracking, payouts[['influencer_id', 'total_payout']], on='influencer_id', how='left')
+
+# Ensure all required fields are there
 data['ROAS'] = data['revenue'] / data['total_payout']
 data['date'] = pd.to_datetime(data['date'])
-data['brand'] = tracking['brand']  # ✅ Needed for brand filtering
+data['brand'] = tracking['brand']
+
 
 # --- Sidebar Filters ---
 st.sidebar.header("Filters")
