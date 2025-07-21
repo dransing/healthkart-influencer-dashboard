@@ -12,27 +12,23 @@ import base64
 influencers = pd.read_csv('influencers.csv')
 posts = pd.read_csv('posts.csv')
 tracking = pd.read_csv('tracking_data_with_brand.csv')  # ✅ Updated file
+tracking['date'] = pd.to_datetime(tracking['date'], errors='coerce')  # ✅ Ensure date is datetime
 payouts = pd.read_csv('payouts.csv')
 sentiment = pd.read_csv('posts_with_sentiment.csv')
 profit = pd.read_csv('profit_estimation.csv')
 anomaly = pd.read_csv('anomaly_detected.csv')
 
 # --- Preprocess ---
-# Merge tracking and payouts fully, keeping all tracking data
-data = pd.merge(tracking, payouts[['influencer_id', 'total_payout']], on='influencer_id', how='left')
-
-# Ensure all required fields are there
+data = pd.merge(tracking, payouts, on='influencer_id')
 data['ROAS'] = data['revenue'] / data['total_payout']
-data['date'] = pd.to_datetime(data['date'])
 data['brand'] = tracking['brand']
-
 
 # --- Sidebar Filters ---
 st.sidebar.header("Filters")
 platform_filter = st.sidebar.selectbox("Platform", ["All"] + influencers['platform'].unique().tolist())
 gender_filter = st.sidebar.selectbox("Gender", ["All"] + influencers['gender'].unique().tolist())
 category_filter = st.sidebar.selectbox("Category", ["All"] + influencers['category'].unique().tolist())
-brand_filter = st.sidebar.selectbox("Brand", ["All"] + tracking['brand'].dropna().unique().tolist())  # ✅ New
+brand_filter = st.sidebar.selectbox("Brand", ["All"] + tracking['brand'].dropna().unique().tolist())
 
 filtered_influencers = influencers.copy()
 if platform_filter != "All":
@@ -45,8 +41,7 @@ if category_filter != "All":
 filtered_data = data.copy()
 if brand_filter != "All":
     filtered_data = filtered_data[filtered_data['brand'] == brand_filter]
-    filtered_data['date'] = pd.to_datetime(filtered_data['date'], errors='coerce')
-
+filtered_data['date'] = pd.to_datetime(filtered_data['date'], errors='coerce')  # ✅ Ensure datetime
 
 # --- Dashboard Title ---
 st.title("📊 HealthKart Influencer Campaign Dashboard (Agentic AI Edition)")
@@ -76,37 +71,21 @@ st.plotly_chart(fig)
 
 # --- 🏷️ Brand-wise ROAS ---
 st.subheader("🏷️ Brand-wise ROAS")
-brand_roas = filtered_data.groupby('brand').agg({
-    'revenue': 'sum',
-    'total_payout': 'sum'
-}).reset_index()
+brand_roas = filtered_data.groupby('brand').agg({'revenue': 'sum', 'total_payout': 'sum'}).reset_index()
 brand_roas['ROAS'] = brand_roas['revenue'] / brand_roas['total_payout']
 fig_brand_roas = px.bar(brand_roas, x='brand', y='ROAS', color='ROAS', color_continuous_scale='Viridis', title="ROAS by Brand")
 st.plotly_chart(fig_brand_roas)
 
 # --- 🔥 Incremental ROAS Visualization ---
 st.subheader("📈 Incremental ROAS: Before vs After Campaign")
-
-# Simulated campaign start date
 campaign_start = st.date_input("📅 Select Campaign Start Date", value=pd.to_datetime("2025-06-01"))
-
-# Divide data into before and after
 before_campaign = filtered_data[filtered_data['date'] < campaign_start]
 after_campaign = filtered_data[filtered_data['date'] >= campaign_start]
-
-# Calculate ROAS
 before_roas = before_campaign['revenue'].sum() / before_campaign['total_payout'].sum() if before_campaign['total_payout'].sum() > 0 else 0
 after_roas = after_campaign['revenue'].sum() / after_campaign['total_payout'].sum() if after_campaign['total_payout'].sum() > 0 else 0
-
-# Plot comparison bar chart
-roas_df = pd.DataFrame({
-    'Period': ['Before Campaign', 'After Campaign'],
-    'ROAS': [before_roas, after_roas]
-})
+roas_df = pd.DataFrame({'Period': ['Before Campaign', 'After Campaign'], 'ROAS': [before_roas, after_roas]})
 fig_roas_compare = px.bar(roas_df, x='Period', y='ROAS', color='Period', title="ROAS Before vs After Campaign")
 st.plotly_chart(fig_roas_compare)
-
-# Text Insight
 if before_roas and after_roas:
     percent_change = round((after_roas - before_roas) / before_roas * 100, 1)
     direction = "increased 📈" if percent_change > 0 else "decreased 📉"
@@ -114,78 +93,37 @@ if before_roas and after_roas:
 
 # --- 🎯 Product-Platform Recommendations ---
 st.subheader("🎯 Best Product-Platform Pairs")
-
-# Merge tracking with influencers to get platform info
 conversion_df = pd.merge(tracking, influencers[['id', 'platform']], left_on='influencer_id', right_on='id')
-
-# Merge with posts to get reach per influencer if needed
 posts_agg = posts.groupby('influencer_id')['reach'].sum().reset_index().rename(columns={'reach': 'total_reach'})
 conversion_df = pd.merge(conversion_df, posts_agg, on='influencer_id', how='left')
-
-# Aggregate by product-platform
-summary = conversion_df.groupby(['product', 'platform']).agg({
-    'orders': 'sum',
-    'total_reach': 'sum'
-}).reset_index()
-
+summary = conversion_df.groupby(['product', 'platform']).agg({'orders': 'sum', 'total_reach': 'sum'}).reset_index()
 summary['conversion_rate'] = summary['orders'] / summary['total_reach']
 summary = summary.dropna().sort_values('conversion_rate', ascending=False)
-
-# Display top 10 recommendations
 st.write("🔝 Top 10 Product-Platform Pairs by Conversion Rate")
 st.dataframe(summary.head(10))
-
-# Visualize
-fig_reco = px.bar(summary.head(10), x='product', y='conversion_rate', color='platform', barmode='group',
-                  title="Top Product-Platform Conversion Combos")
+fig_reco = px.bar(summary.head(10), x='product', y='conversion_rate', color='platform', barmode='group', title="Top Product-Platform Conversion Combos")
 st.plotly_chart(fig_reco)
 
 # --- 🧠 Predictive ROAS Modeling ---
 st.subheader("🧠 Predictive ROAS Forecasting")
-
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-
-# Merge all needed info
 model_df = pd.merge(tracking, payouts, on='influencer_id')
 model_df = pd.merge(model_df, influencers[['id', 'platform', 'category', 'follower_count']], left_on='influencer_id', right_on='id')
-
-# Feature Engineering
 model_df['ROAS'] = model_df['revenue'] / model_df['total_payout']
 model_df.dropna(subset=['ROAS'], inplace=True)
-
-# Encode categorical variables
 model_df = pd.get_dummies(model_df, columns=['platform', 'category'], drop_first=True)
-
-# Define features and target
 X = model_df[['orders', 'revenue', 'follower_count'] + [col for col in model_df.columns if col.startswith('platform_') or col.startswith('category_')]]
 y = model_df['ROAS']
-
-# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Train model
 model = LinearRegression()
 model.fit(X_train, y_train)
-
-# Predict on test set
 predictions = model.predict(X_test)
-
-# Show actual vs predicted
-results_df = pd.DataFrame({
-    'Actual ROAS': y_test,
-    'Predicted ROAS': predictions
-}).reset_index(drop=True)
-
+results_df = pd.DataFrame({'Actual ROAS': y_test, 'Predicted ROAS': predictions}).reset_index(drop=True)
 st.write("🔍 Sample of ROAS Prediction Results:")
 st.dataframe(results_df.head(10))
-
-# Visualization
 fig_pred = px.scatter(results_df, x='Actual ROAS', y='Predicted ROAS', trendline="ols", title="Actual vs Predicted ROAS")
 st.plotly_chart(fig_pred)
 
-
-# --- ROAS Over Time ---
+# --- ROAS Trend Over Time ---
 st.subheader("ROAS Trend Over Time")
 roas_by_date = filtered_data.groupby('date')['ROAS'].mean().reset_index()
 fig2 = px.line(roas_by_date, x='date', y='ROAS', title="ROAS Trend")
@@ -209,15 +147,14 @@ if top_recommend:
 if drop_recommend:
     st.warning(f"📉 Consider Revising: {', '.join(drop_recommend)}")
 
-# --- Natural Language Insights ---
+# --- Auto Insights ---
 st.subheader("🧠 Auto Insights")
 yt_avg = roas_chart.merge(influencers, left_on='influencer_id', right_on='id')
 yt_roas = yt_avg[yt_avg['platform'] == 'YouTube']['ROAS'].mean()
 insta_roas = yt_avg[yt_avg['platform'] == 'Instagram']['ROAS'].mean()
 delta = round((yt_roas - insta_roas) / insta_roas * 100, 1) if insta_roas else 0
-
 st.markdown(f"""
-- 📺 YouTube ROAS beats Instagram by **{delta}%**
+- 🎪 YouTube ROAS beats Instagram by **{delta}%**
 - 🏆 Top Influencer: **{roas_chart.sort_values('ROAS', ascending=False)['name'].iloc[0]}**
 - 🚨 Lowest Performer: **{roas_chart.sort_values('ROAS')['name'].iloc[0]}**
 """)
@@ -255,8 +192,8 @@ influencers['cluster'] = model.fit_predict(scaled)
 fig_clust = px.scatter(influencers, x='follower_count', y='id', color='cluster', title="Influencer Clusters")
 st.plotly_chart(fig_clust)
 
-# --- File Uploader for Real-Time Dataset Test ---
-st.subheader("📤 Upload Your Own Influencer Data")
+# --- File Uploader ---
+st.subheader("📄 Upload Your Own Influencer Data")
 uploaded_file = st.file_uploader("Upload influencers.csv for testing", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
@@ -268,7 +205,7 @@ st.subheader("📄 Export Insights PDF")
 pdf_path = "HealthKart_Insights_Report_Clean.pdf"
 with open(pdf_path, "rb") as f:
     base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-pdf_link = f'<a href="data:application/pdf;base64,{base64_pdf}" download="HealthKart_Insights_Report_Clean.pdf">📥 Download Final PDF Report</a>'
+pdf_link = f'<a href="data:application/pdf;base64,{base64_pdf}" download="HealthKart_Insights_Report_Clean.pdf">📅 Download Final PDF Report</a>'
 st.markdown(pdf_link, unsafe_allow_html=True)
 
 # Footer
