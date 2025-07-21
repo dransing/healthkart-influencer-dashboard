@@ -211,8 +211,14 @@ try:
         results_df = pd.DataFrame({'Actual ROAS': y_test, 'Predicted ROAS': predictions}).reset_index(drop=True)
         st.dataframe(results_df.head(10))
 
-        fig_pred = px.scatter(results_df, x='Actual ROAS', y='Predicted ROAS', trendline="ols", title="Actual vs Predicted ROAS")
-        st.plotly_chart(fig_pred)
+        fig_pred_bar = px.bar(results_df.head(10), 
+                      x=results_df.index, 
+                      y=['Actual ROAS', 'Predicted ROAS'],
+                      barmode='group',
+                      labels={'value': 'ROAS', 'index': 'Sample'},
+                      title="Actual vs Predicted ROAS (Top 10)")
+st.plotly_chart(fig_pred_bar)
+
     else:
         st.warning("Missing required columns for forecasting: orders, revenue, or follower_count")
 
