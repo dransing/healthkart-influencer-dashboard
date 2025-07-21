@@ -1,0 +1,4 @@
+influencer_id,revenue,total_payout,COGS,Net_Profit,id,name,Profit_Margin_%
+1,3000,500,1500.0,1000.0,1,Ashwin,33.33
+2,5000,500,2500.0,2000.0,2,Sneha,40.0
+3,1500,200,750.0,550.0,3,Raj,36.67

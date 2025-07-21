@@ -1,0 +1,4 @@
+source,campaign,influencer_id,user_id,product,date,orders_tracking,revenue,basis,rate,orders_payouts,total_payout,ROAS,day,anomaly_score,is_anomaly
+Instagram,MB May,1,U001,MuscleBlaze Whey,2024-05-10,2,3000,post,500,,500,6.0,131,1,False
+YouTube,HK Glow,2,U002,HKVitals Glow,2024-05-11,5,5000,order,100,5.0,500,10.0,132,1,False
+Instagram,Life May,3,U003,Gritzo Energy,2024-05-12,1,1500,order,200,1.0,200,7.5,133,-1,True
