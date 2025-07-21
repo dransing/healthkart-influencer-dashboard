@@ -183,46 +183,34 @@ st.plotly_chart(fig_reco)
 # --- ROAS Forecasting ---
 st.subheader("🔮 Predictive ROAS Forecasting")
 
-# Merge all required info
-model_df = pd.merge(tracking, payouts, on='influencer_id')
-model_df = pd.merge(model_df, influencers[['id', 'platform', 'category', 'follower_count']], left_on='influencer_id', right_on='id')
-
-# Check if required numeric columns exist
-required_cols = ['orders', 'revenue', 'follower_count', 'total_payout']
-missing_cols = [col for col in required_cols if col not in model_df.columns]
-
-if missing_cols:
-    st.warning(f"Missing required columns for forecasting: {', '.join(missing_cols)}")
-else:
-    # Proceed only if all required columns exist
+try:
+    model_df = pd.merge(tracking, payouts, on='influencer_id')
+    model_df = pd.merge(model_df, influencers[['id', 'platform', 'category', 'follower_count']], left_on='influencer_id', right_on='id')
     model_df['ROAS'] = model_df['revenue'] / model_df['total_payout']
     model_df.dropna(subset=['ROAS'], inplace=True)
 
-    # Encode categorical variables
-    model_df = pd.get_dummies(model_df, columns=['platform', 'category'], drop_first=True)
+    required_cols = ['orders', 'revenue', 'follower_count']
+    if all(col in model_df.columns for col in required_cols):
+        model_df = pd.get_dummies(model_df, columns=['platform', 'category'], drop_first=True)
+        X = model_df[required_cols + [col for col in model_df.columns if col.startswith('platform_') or col.startswith('category_')]]
+        y = model_df['ROAS']
 
-    # Define features and target
-    feature_cols = ['orders', 'revenue', 'follower_count'] + [col for col in model_df.columns if col.startswith('platform_') or col.startswith('category_')]
-    X = model_df[feature_cols]
-    y = model_df['ROAS']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+        predictions = model.predict(X_test)
 
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        results_df = pd.DataFrame({'Actual ROAS': y_test, 'Predicted ROAS': predictions}).reset_index(drop=True)
+        st.dataframe(results_df.head(10))
 
-    # Train model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+        fig_pred = px.scatter(results_df, x='Actual ROAS', y='Predicted ROAS', trendline="ols", title="Actual vs Predicted ROAS")
+        st.plotly_chart(fig_pred)
+    else:
+        st.warning("Missing required columns for forecasting: orders, revenue, or follower_count")
 
-    # Predict on test set
-    predictions = model.predict(X_test)
+except Exception as e:
+    st.error(f"Error during ROAS forecasting: {e}")
 
-    # Show results
-    results_df = pd.DataFrame({'Actual ROAS': y_test, 'Predicted ROAS': predictions}).reset_index(drop=True)
-    st.dataframe(results_df.head(10))
-
-    # Visualize
-    fig_pred = px.scatter(results_df, x='Actual ROAS', y='Predicted ROAS', trendline="ols", title="Actual vs Predicted ROAS")
-    st.plotly_chart(fig_pred)
 
 
 # --- File Uploader ---
