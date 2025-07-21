@@ -191,7 +191,7 @@ else:
 st.subheader("🚨 Anomaly Detection: ROAS Spikes & Drops")
 if all(col in anomaly.columns for col in ['date', 'ROAS', 'Flag']):
     anomaly['date'] = pd.to_datetime(anomaly['date'])
-    fig_anom = px.line(anomaly, x='date', y='ROAS', color='is_anomaly', title="Anomaly Marked ROAS")
+    fig_anom = px.line(anomaly, x='date', y='ROAS', color='Flag', title="Anomaly Marked ROAS")
     st.plotly_chart(fig_anom)
 else:
     st.warning("Required columns (date, ROAS, Flag) not found in anomaly_detected.csv")
