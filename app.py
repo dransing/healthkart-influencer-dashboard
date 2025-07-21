@@ -106,7 +106,8 @@ st.plotly_chart(fig_sent)
 st.subheader("💸 Profit Estimation")
 if all(col in profit.columns for col in ['influencer_id', 'Net_Profit', 'Profit_Margin_%']):
     st.dataframe(profit[['influencer_id', 'Net_Profit', 'Profit_Margin_%']])
-    fig_profit = px.bar(profit, x='influencer_id', y='Net_Profit', title="Net Profit by Influencer")
+    fig_profit = px.bar(profit, x='influencer_id', y='net_profit', color='influencer_id', title="Net Profit by Influencer", color_discrete_sequence=px.colors.qualitative.Safe)
+
     st.plotly_chart(fig_profit)
 else:
     st.warning("One or more required columns (influencer_id, Net_Profit, Profit_Margin_%) not found in profit_estimation.csv")
