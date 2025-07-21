@@ -95,19 +95,47 @@ st.metric("Simulated ROAS", simulated_roas)
 
 # --- Incremental ROAS ---
 st.subheader("📈 Incremental ROAS: Before vs After Campaign")
+
+# Select campaign start date
 campaign_start = st.date_input("📅 Select Campaign Start Date", value=pd.to_datetime("2025-06-01"))
 campaign_start = pd.to_datetime(campaign_start)
+
+# Filter before and after campaign
 before_campaign = filtered_data[filtered_data['date'] < campaign_start]
 after_campaign = filtered_data[filtered_data['date'] >= campaign_start]
+
+# DEBUG: Show how many rows fall before/after the campaign
+st.markdown(f"🧪 Rows Before Campaign: {before_campaign.shape[0]}")
+st.markdown(f"🧪 Rows After Campaign: {after_campaign.shape[0]}")
+
+# Optional: show first few rows to help debug
+# st.dataframe(after_campaign.head())
+
+# Calculate ROAS only if data is available
 before_roas = before_campaign['revenue'].sum() / before_campaign['total_payout'].sum() if before_campaign['total_payout'].sum() > 0 else 0
 after_roas = after_campaign['revenue'].sum() / after_campaign['total_payout'].sum() if after_campaign['total_payout'].sum() > 0 else 0
+
+# Create dataframe
 roas_df = pd.DataFrame({'Period': ['Before Campaign', 'After Campaign'], 'ROAS': [before_roas, after_roas]})
-fig_roas_compare = px.bar(roas_df, x='Period', y='ROAS', color='Period', title="ROAS Before vs After Campaign")
+
+# Plot
+fig_roas_compare = px.bar(
+    roas_df, x='Period', y='ROAS', color='Period', 
+    title="ROAS Before vs After Campaign",
+    text='ROAS'
+)
 st.plotly_chart(fig_roas_compare)
-if before_roas and after_roas:
+
+# Text Summary
+if before_roas > 0 and after_roas > 0:
     percent_change = round((after_roas - before_roas) / before_roas * 100, 1)
     direction = "increased 📈" if percent_change > 0 else "decreased 📉"
     st.markdown(f"**ROAS {direction} by {abs(percent_change)}% after the campaign started.**")
+elif after_campaign.empty:
+    st.warning("⚠️ No data found after the selected campaign date. Try changing filters or date.")
+elif after_roas == 0:
+    st.warning("⚠️ After-campaign ROAS is 0. Check if revenue and payouts exist in that period.")
+
 
 # --- Smart Recommendations ---
 st.subheader("🧠 Smart Influencer Recommendations")
@@ -163,7 +191,7 @@ else:
 st.subheader("🚨 Anomaly Detection: ROAS Spikes & Drops")
 if all(col in anomaly.columns for col in ['date', 'ROAS', 'Flag']):
     anomaly['date'] = pd.to_datetime(anomaly['date'])
-    fig_anom = px.line(anomaly, x='date', y='ROAS', color='Flag', title="Anomaly Marked ROAS")
+    fig_anom = px.line(anomaly, x='date', y='ROAS', color='is_anomaly', title="Anomaly Marked ROAS")
     st.plotly_chart(fig_anom)
 else:
     st.warning("Required columns (date, ROAS, Flag) not found in anomaly_detected.csv")
