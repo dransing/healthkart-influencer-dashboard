@@ -1,4 +1,7 @@
 id,name,category,gender,follower_count,platform
-1,Ashwin,Fitness,Male,50000,Instagram
-2,Sneha,Beauty,Female,100000,YouTube
-3,Raj,Lifestyle,Male,75000,Instagram
+1,Aman,fitness,male,20000,Instagram
+2,Neha,beauty,female,18000,YouTube
+3,Karan,lifestyle,male,25000,Instagram
+101,Anjali,fitness,female,30000,Instagram
+102,Ravi,health,male,22000,YouTube
+
